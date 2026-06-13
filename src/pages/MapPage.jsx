@@ -467,6 +467,82 @@ async function fetchAllowedJansAuto() {
 }
 
 //---------------------------------------------------------------------------------
+//////2026.06.以下1セクションを追加
+// 位置情報キャッシュ
+const TM_LAST_LOCATION_KEY = "tm_last_location";
+const TM_LOCATION_ATTEMPT_KEY = "tm_last_location_attempt";
+const LOCATION_TTL_MS = 30 * 60 * 1000; // 30分
+const LOCATION_ATTEMPT_TTL_MS = 24 * 60 * 60 * 1000; // 拒否/失敗時は24時間再試行しない
+
+function getCachedLocation() {
+  try {
+    const raw = localStorage.getItem(TM_LAST_LOCATION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function saveLocation(loc) {
+  try {
+    localStorage.setItem(TM_LAST_LOCATION_KEY, JSON.stringify(loc));
+  } catch {}
+}
+
+function shouldRefreshLocation(loc) {
+  if (!loc?.located_at) return true;
+  const last = new Date(loc.located_at).getTime();
+  return Date.now() - last > LOCATION_TTL_MS;
+}
+
+function shouldAttemptLocation() {
+  try {
+    const last = Number(localStorage.getItem(TM_LOCATION_ATTEMPT_KEY) || 0);
+    if (!last) return true;
+    return Date.now() - last > LOCATION_ATTEMPT_TTL_MS;
+  } catch {
+    return true;
+  }
+}
+
+function markLocationAttempt() {
+  try {
+    localStorage.setItem(TM_LOCATION_ATTEMPT_KEY, String(Date.now()));
+  } catch {}
+}
+
+function fetchLocationSilently() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+
+    markLocationAttempt();
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          located_at: new Date().toISOString(),
+        };
+        saveLocation(loc);
+        resolve(loc);
+      },
+      () => resolve(null),
+      {
+        enableHighAccuracy: false,
+        maximumAge: LOCATION_TTL_MS,
+        timeout: 3000,
+      }
+    );
+  });
+}
+
+//---------------------------------------------------------------------------------
 const REREAD_LS_KEY = "tm_reread_until";
 const CENTER_Y_FRAC = 0.85; // 0.0 = 画面最上端, 0.5 = 画面の真ん中
 const ANCHOR_JAN = "4964044046324";
@@ -599,6 +675,33 @@ function MapPage() {
         window.history.replaceState({}, "", url.toString());
       }
     } catch {}
+  }, []);
+
+  //---------------------------------------------------------------------------------
+  //////2026.06.以下1セクションを追加
+  // 位置情報の初期取得＆更新
+  // - 取得できた場合だけ tm_last_location に保存
+  // - 拒否/失敗しても画面表示は止めない - 拒否/失敗時は24時間再試行しない
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      const cached = getCachedLocation();
+
+      // 30分以内の位置情報があれば再取得しない
+      if (cached && !shouldRefreshLocation(cached)) return;
+
+      // 拒否/失敗直後は再試行しない
+      if (!shouldAttemptLocation()) return;
+
+      await fetchLocationSilently();
+
+      if (!mounted) return;
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   //---------------------------------------------------------------------------------
