@@ -1775,6 +1775,73 @@ function MapPage() {
     });
   }, []);
 
+  //---------------------------------------------------------------------------------
+  //////2026.06.以下1セクションを追加
+  // 商品を開く共通関数　（アクセスログのため）
+  const openWine = useCallback(
+    async (itemOrJan, opts = {}) => {
+      const janStr =
+        typeof itemOrJan === "string"
+          ? String(itemOrJan)
+          : String(getJanFromItem(itemOrJan));
+
+      if (!janStr) return;
+
+      const item =
+        typeof itemOrJan === "string"
+          ? data.find((d) => String(getJanFromItem(d)) === janStr)
+          : itemOrJan;
+
+      await closeUIsThen({
+        preserveMyPage: true,
+        preserveSearch: !!opts.preserveSearch,
+        preserveRated: !!opts.preserveRated,
+        preserveCluster: true,
+      });
+
+      setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
+
+      if (opts.source) {
+        sendAccessLog({
+          event_type: "product_open",
+          jan_code: janStr,
+          source: opts.source,
+          search: getSearchTextForHashRouter(location.search),
+        });
+      }
+
+      setSelectedJAN(janStr);
+      setIframeNonce(Date.now());
+      setProductDrawerOpen(true);
+
+      if (item) {
+        focusOnWine(item, {
+          zoom: opts.zoom,
+          recenter: opts.recenter,
+        });
+      }
+
+      if (/^\/products\/[^/]+$/.test(location.pathname)) {
+        navigate(
+          {
+            pathname: `/products/${encodeURIComponent(janStr)}`,
+            search: location.search || "",
+          },
+          { replace: false }
+        );
+      }
+    },
+    [
+      data,
+      closeUIsThen,
+      focusOnWine,
+      location.pathname,
+      location.search,
+      navigate,
+    ]
+  );
+  //---------------------------------------------------------------------------------
+
   // 最近傍（ワールド座標：DeckGLの座標系 = [UMAP1, -UMAP2]）
   const findNearestWineWorld = useCallback(
     (wx, wy) => {
@@ -2190,26 +2257,34 @@ function MapPage() {
         viewState={viewState}
         setViewState={setViewState}
         onOpenSlider={() => navigate("/slider")}
+        //////2026.06.以下を以下7行と置き換え
+        //onPickWine={async (item) => {
+        //  if (!item) return;
+        //
+        //  const janStr = getJanFromItem(item);
+        //  if (!janStr) {
+        //    console.warn("onPickWine: JAN が取得できませんでした", item);
+        //    return;
+        //  }
+        //
+        //  await closeUIsThen({
+        //    preserveMyPage: true,
+        //    preserveSearch: true,
+        //    preserveCluster: true,
+        //  });
+        //
+        //  setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
+        //  setSelectedJAN(janStr);
+        //  setIframeNonce(Date.now());
+        //  setProductDrawerOpen(true);
+        //  focusOnWine(item, { recenter: false });
+        //}}
         onPickWine={async (item) => {
           if (!item) return;
-
-          const janStr = getJanFromItem(item);
-          if (!janStr) {
-            console.warn("onPickWine: JAN が取得できませんでした", item);
-            return;
-          }
-
-          await closeUIsThen({
-            preserveMyPage: true,
-            preserveSearch: true,
-            preserveCluster: true,
+          await openWine(item, {
+            source: "map",
+            recenter: false,
           });
-
-          setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
-          setSelectedJAN(janStr);
-          setIframeNonce(Date.now());
-          setProductDrawerOpen(true);
-          focusOnWine(item, { recenter: false });
         }}
         clusterColorMode={clusterColorMode}
         edgeMarginXPx={50}
@@ -2495,37 +2570,46 @@ function MapPage() {
         open={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         data={searchPanelData}
+        //////2026.06.以下を以下8行と置き換え
+        //onPick={async (item) => {
+        //  if (!item) return;
+        //
+        //  const janStr = getJanFromItem(item);
+        //  if (!janStr) {
+        //    console.warn(
+        //      "SearchPanel onPick: JAN が取得できませんでした",
+        //      item
+        //    );
+        //    return;
+        //  }
+        //
+        //  await closeUIsThen({
+        //    preserveMyPage: true,
+        //    preserveSearch: true,
+        //    preserveCluster: true,
+        //  });
+        //
+        //  // クラスターパネルを畳む
+        //  setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
+        //
+        //  setSelectedJAN(janStr);
+        //
+        //  setIframeNonce(Date.now());
+        //
+        //  const tx = Number(item.umap_x),
+        //    ty = Number(item.umap_y);
+        //  if (Number.isFinite(tx) && Number.isFinite(ty)) {
+        //    centerToUMAP(tx, ty, { zoom: viewState.zoom });
+        //  }
+        //  setProductDrawerOpen(true);
+        //}}
         onPick={async (item) => {
           if (!item) return;
-
-          const janStr = getJanFromItem(item);
-          if (!janStr) {
-            console.warn(
-              "SearchPanel onPick: JAN が取得できませんでした",
-              item
-            );
-            return;
-          }
-
-          await closeUIsThen({
-            preserveMyPage: true,
+          await openWine(item, {
             preserveSearch: true,
-            preserveCluster: true,
+            zoom: viewState.zoom,
+            source: "search",
           });
-
-          // クラスターパネルを畳む
-          setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
-
-          setSelectedJAN(janStr);
-
-          setIframeNonce(Date.now());
-
-          const tx = Number(item.umap_x),
-            ty = Number(item.umap_y);
-          if (Number.isFinite(tx) && Number.isFinite(ty)) {
-            centerToUMAP(tx, ty, { zoom: viewState.zoom });
-          }
-          setProductDrawerOpen(true);
         }}
         onScanClick={async () => {
           await closeUIsThen({ preserveCluster: true });
@@ -2577,25 +2661,39 @@ function MapPage() {
           const hit = data.find(
             (d) => String(getJanFromItem(d)) === jan
           );
+          //////2026.06.以下を以下13行と置き換え
+          //if (hit) {
+          //  const janStr = getJanFromItem(hit);
+          //  if (!janStr) return false;
+          //
+          //  await closeUIsThen({
+          //    preserveMyPage: true,
+          //    preserveCluster: true,
+          //  });
+          //
+          //  setSelectedJAN(janStr);
+          //
+          //  setIframeNonce(Date.now());
+          //  lastCommittedRef.current = { code: jan, at: now };
+          //
+          //  const tx = Number(hit.umap_x),
+          //    ty = Number(hit.umap_y);
+          //  if (Number.isFinite(tx) && Number.isFinite(ty)) {
+          //    centerToUMAP(tx, ty, { zoom: INITIAL_ZOOM });
+          //  }
+          //  return true;
+          //}
           if (hit) {
             const janStr = getJanFromItem(hit);
             if (!janStr) return false;
-
-            await closeUIsThen({
-              preserveMyPage: true,
-              preserveCluster: true,
+          
+            lastCommittedRef.current = { code: jan, at: now };
+          
+            await openWine(hit, {
+              zoom: INITIAL_ZOOM,
+              source: "scan",
             });
 
-            setSelectedJAN(janStr);
-
-            setIframeNonce(Date.now());
-            lastCommittedRef.current = { code: jan, at: now };
-
-            const tx = Number(hit.umap_x),
-              ty = Number(hit.umap_y);
-            if (Number.isFinite(tx) && Number.isFinite(ty)) {
-              centerToUMAP(tx, ty, { zoom: INITIAL_ZOOM });
-            }
             return true;
           }
 
@@ -2614,32 +2712,44 @@ function MapPage() {
         onClose={async () => {
           await closeUIsThen({ preserveCluster: true });
         }}
+        //////2026.06.以下を以下11行と置き換え
+        //onSelectJAN={async (jan) => {
+        //  await closeUIsThen({
+        //    preserveMyPage: true,
+        //    preserveRated: true,
+        //    preserveCluster: true,
+        //  });
+        //
+        //  // クラスターパネルを畳む
+        //  setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
+        //
+        //  try {
+        //    sessionStorage.setItem("tm_from_rated_jan", String(jan));
+        //  } catch {}
+        //  setSelectedJAN(jan);
+        //  setIframeNonce(Date.now());
+        //  const item = data.find(
+        //    (d) => String(getJanFromItem(d)) === String(jan)
+        //  );
+        //  if (item) {
+        //    const tx = Number(item.umap_x),
+        //      ty = Number(item.umap_y);
+        //    if (Number.isFinite(tx) && Number.isFinite(ty)) {
+        //      centerToUMAP(tx, ty, { zoom: INITIAL_ZOOM });
+        //    }
+        //  }
+        //  setProductDrawerOpen(true);
+        //}}
         onSelectJAN={async (jan) => {
-          await closeUIsThen({
-            preserveMyPage: true,
-            preserveRated: true,
-            preserveCluster: true,
-          });
-
-          // クラスターパネルを畳む
-          setClusterCollapseKey((k) => (k == null ? 1 : k + 1));
-
-          try {
+         try {
             sessionStorage.setItem("tm_from_rated_jan", String(jan));
           } catch {}
-          setSelectedJAN(jan);
-          setIframeNonce(Date.now());
-          const item = data.find(
-            (d) => String(getJanFromItem(d)) === String(jan)
-          );
-          if (item) {
-            const tx = Number(item.umap_x),
-              ty = Number(item.umap_y);
-            if (Number.isFinite(tx) && Number.isFinite(ty)) {
-              centerToUMAP(tx, ty, { zoom: INITIAL_ZOOM });
-            }
-          }
-          setProductDrawerOpen(true);
+        
+          await openWine(String(jan), {
+            preserveRated: true,
+            zoom: INITIAL_ZOOM,
+            source: "rated",
+          });
         }}
       />
 
