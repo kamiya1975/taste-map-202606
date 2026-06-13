@@ -543,6 +543,118 @@ function fetchLocationSilently() {
 }
 
 //---------------------------------------------------------------------------------
+//////2026.06.以下1セクションを追加
+// アクセスログ共通
+const ACCESS_LOG_SESSION_KEY = "tm_access_log_session_id";
+const QR_LANDING_LOGGED_KEY = "tm_qr_landing_logged_v1";
+
+function getOrCreateAccessLogSessionId() {
+  try {
+    let sid = sessionStorage.getItem(ACCESS_LOG_SESSION_KEY);
+    if (sid) return sid;
+
+    sid =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `sid_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
+    sessionStorage.setItem(ACCESS_LOG_SESSION_KEY, sid);
+    return sid;
+  } catch {
+    return null;
+  }
+}
+
+function getSearchTextForHashRouter(locationSearch = "") {
+  try {
+    return (
+      locationSearch ||
+      (window.location.hash.includes("?")
+        ? `?${window.location.hash.split("?")[1]}`
+        : window.location.search || "")
+    );
+  } catch {
+    return locationSearch || "";
+  }
+}
+
+function readAccessLogContext(search = "") {
+  try {
+    const params = new URLSearchParams(search || "");
+
+    const rawStoreId = params.get("store_id");
+    const storeIdNum = rawStoreId != null ? Number(rawStoreId) : null;
+
+    let store_id =
+      Number.isFinite(storeIdNum) && storeIdNum > 0 ? storeIdNum : null;
+
+    // URLになければ、既存アプリのメイン店舗IDを見る
+    if (!store_id) {
+      const rawMain = localStorage.getItem("app.main_store_id");
+      const mainNum = Number(rawMain);
+      store_id = Number.isFinite(mainNum) && mainNum > 0 ? mainNum : null;
+    }
+
+    return {
+      src: params.get("src") || null,
+      store_id,
+    };
+  } catch {
+    return { src: null, store_id: null };
+  }
+}
+
+async function sendAccessLog({
+  event_type,
+  jan_code,
+  source = null,
+  search = "",
+}) {
+  try {
+    if (!event_type || !jan_code) return;
+
+    const ctx = readAccessLogContext(search);
+
+    const payload = {
+      event_type,
+      jan_code: String(jan_code),
+      session_id: getOrCreateAccessLogSessionId(),
+      store_id: ctx.store_id,
+      importer_id: null,
+      source: event_type === "product_open" ? source || null : null,
+    };
+
+    // 位置情報キャッシュを付与
+    try {
+      const raw = localStorage.getItem(TM_LAST_LOCATION_KEY);
+      if (raw) {
+        const loc = JSON.parse(raw);
+        const lat = Number(loc?.latitude);
+        const lon = Number(loc?.longitude);
+        const acc = Number(loc?.accuracy);
+
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          payload.latitude = lat;
+          payload.longitude = lon;
+        }
+        if (Number.isFinite(acc)) {
+          payload.location_accuracy = acc;
+        }
+      }
+    } catch {}
+
+    await fetch(`${API_BASE}/api/app/access-logs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    });
+  } catch (e) {
+    console.warn("[access-log] send failed:", e);
+  }
+}
+
+//---------------------------------------------------------------------------------
 const REREAD_LS_KEY = "tm_reread_until";
 const CENTER_Y_FRAC = 0.85; // 0.0 = 画面最上端, 0.5 = 画面の真ん中
 const ANCHOR_JAN = "4964044046324";
@@ -639,9 +751,10 @@ function MapPage() {
   // 更新ボタン（points再取得）の latest-only + abort
   const pointsFetchSeqRef = useRef(0);
   const pointsAbortRef = useRef(null);  
-  //////2026.06.以下2行を追加
+  //////2026.06.以下3行を追加
   const routeJanHandledRef = useRef("");
   const routeJanCenteredRef = useRef("");
+  const qrLandingLoggedRef = useRef(new Set());
 
   // ---- Drawer 状態（すべて明示）----
   const [isMyPageOpen, setIsMyPageOpen] = useState(false); // アプリガイド（メニュー）
@@ -731,8 +844,8 @@ function MapPage() {
   const wishOverrideRef = useRef(new Map()); // jan -> { value:boolean, at:number }
   const lastWishLocalAtRef = useRef(0);
 
-  //////2026.06.以下1セクションを追加
   //---------------------------------------------------------------------------------
+  //////2026.06.以下1セクションを追加
   // QR URLの store_id を既存アプリのメイン店舗IDとして保持
   // 例: /products/:jan?src=qr&store_id=4
   useEffect(() => {
@@ -1767,6 +1880,56 @@ function MapPage() {
       });
     }
   }, [routeJan, data, focusOnWine]);
+
+  //---------------------------------------------------------------------------------
+  //////2026.06.以下1セクションを追加
+  // QR流入アクセスログ
+  // /products/:jan?src=qr&store_id=... で入った初回だけ qr_landing を送る
+  useEffect(() => {
+    const janStr = String(routeJan || "").trim();
+    if (!janStr) return;
+
+    const isProductsRoute = /^\/products\/[^/]+$/.test(location.pathname);
+    if (!isProductsRoute) return;
+
+    const searchText = getSearchTextForHashRouter(location.search);
+    const ctx = readAccessLogContext(searchText);
+
+    // store_id がない通常直リンクでは送らない
+    if (!ctx.store_id) return;
+
+    const contextKey = `store=${ctx.store_id}`;
+
+    try {
+      const raw = sessionStorage.getItem(QR_LANDING_LOGGED_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.context_key === contextKey) return;
+      }
+    } catch {}
+
+    const refKey = `${contextKey}|first=${janStr}`;
+    if (qrLandingLoggedRef.current.has(refKey)) return;
+    qrLandingLoggedRef.current.add(refKey);
+
+    sendAccessLog({
+      event_type: "qr_landing",
+      jan_code: janStr,
+      search: searchText,
+    });
+
+    try {
+      sessionStorage.setItem(
+        QR_LANDING_LOGGED_KEY,
+        JSON.stringify({
+          context_key: contextKey,
+          first_jan: janStr,
+          store_id: ctx.store_id,
+          logged_at: new Date().toISOString(),
+        })
+      );
+    } catch {}
+  }, [routeJan, location.pathname, location.search]);
 
   //---------------------------------------------------------------------------------
   // スナップショット1
