@@ -123,7 +123,11 @@ export default function SliderPage() {
   // 直接来た人は店舗選択へ
   useEffect(() => {
     const saved = localStorage.getItem("selectedStore");
-    const cameFromMap = location.state?.from === "map";
+    //////2026.06.以下を以下3行と置き換え（QRから直接来た場合に店舗選択へ飛ばさない =urlのstore_idがメイン店舗扱いだから）
+    //const cameFromMap = location.state?.from === "map";
+    const cameFromMap =
+      location.state?.from === "map" ||
+      location.state?.from === "menu";
     if (!selectedStore && !saved && !cameFromMap) {
       navigate("/store", { replace: true });
     }
