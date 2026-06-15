@@ -391,8 +391,12 @@ async function fetchAllowedJansAuto() {
       try {
         const { allowedJans, ecOnlyJans, storeJans, mainStoreEcActive } =
           await fetchAllowedJansForStore(mainStoreId);
-        const ecEnabledInContext = Number(mainStoreId) === OFFICIAL_STORE_ID;
-
+        //////2026.06.以下を以下3行と置き換え（カートパネルボタン表示/非表示の正規化）  
+        //const ecEnabledInContext = Number(mainStoreId) === OFFICIAL_STORE_ID;
+        const ecEnabledInContext =
+          mainStoreEcActive === true ||
+          Number(mainStoreId) === OFFICIAL_STORE_ID;
+        
         return { 
           allowedJans,
           ecOnlyJans: ecOnlyJans || [],
