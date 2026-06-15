@@ -430,7 +430,11 @@ async function fetchAllowedJansAuto() {
       const { allowedJans, ecOnlyJans, storeJans, mainStoreEcActive, wishJans } =
         parseAllowedJansResponse(json);
       const subStoreIds = getCurrentSubStoreIdsFromStorage();
-      const ecEnabledInContext = isEcEnabledInContext(mainStoreId, subStoreIds);
+      //////2026.06.以下を以下3行と置き換え（カートパネルボタン表示：公式ECがメイン/サブ店舗にある場合+メイン店舗がec_active=trueの場合）
+      //const ecEnabledInContext = isEcEnabledInContext(mainStoreId, subStoreIds);
+      const ecEnabledInContext =
+        mainStoreEcActive === true ||
+        isEcEnabledInContext(mainStoreId, subStoreIds);
 
       return {
         allowedJans,
