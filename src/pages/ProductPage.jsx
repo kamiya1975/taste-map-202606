@@ -902,8 +902,8 @@ export default function ProductPage() {
     const storeLabel = product?.price_store_name || "";
     availabilityLine = (
       <>
-        この商品は、近くの{storeLabel || "店舗"}でお買い求めいただけます。
-        在庫・価格は店舗でご確認ください。
+        この商品は「{storeLabel || "店舗"}」でお買い求めいただけます。
+        在庫・価格は店頭にてご確認ください。
       </>
     );
   } else if (availableInSelected === false) {
