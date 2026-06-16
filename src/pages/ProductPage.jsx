@@ -415,7 +415,12 @@ function ProductInfoSection({ product, jan_code }) {
                 {b.title}
               </div>
             )}
-            {b.body && <div>{b.body}</div>}
+            {/* 2026.06.以下1行を以下5行に置換え（コメントの改行あり） {b.body && <div>{b.body}</div>} */}
+            {b.body && (
+              <div style={{ whiteSpace: "pre-line" }}>
+                {b.body}
+              </div>
+            )}
           </div>
         ))}
 
