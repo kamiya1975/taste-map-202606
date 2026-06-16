@@ -386,7 +386,9 @@ function ProductInfoSection({ product, jan_code }) {
   } else {
     // 店舗：comment だけ（title/comment は今回は使わない方針）
     if (product?.comment) {
-      commentBlocks.push({ title: "ワインの特徴", body: product.comment });
+      //////2026.06.ついで修正 以下を以下1行と置換え
+      //commentBlocks.push({ title: "ワインの特徴", body: product.comment });
+      commentBlocks.push({ title: null, body: product.comment });
     }
   }
 
