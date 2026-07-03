@@ -401,10 +401,10 @@ export default function SliderPage() {
             appearance:none;
             -webkit-appearance:none;
             width:100%;
-            height:64px;              /* 見えない可動域をさらに拡大 */
+            height:80px;              /* 見えない可動域をさらに拡大 *//*64*/
             background:transparent;
-            margin-top:-10px;         /* 見た目の位置を大きく変えない */
-            margin-bottom:-10px;
+            margin-top:-18px;         /* 見た目の位置を大きく変えない *//*-10 その下1行も同様*/
+            margin-bottom:-18px;
             outline:none;
             cursor:pointer;
             touch-action:pan-y;
