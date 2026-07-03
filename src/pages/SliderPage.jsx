@@ -401,9 +401,10 @@ export default function SliderPage() {
             appearance:none;
             -webkit-appearance:none;
             width:100%;
-            height:44px;              /* タッチ範囲を拡大 */
+            height:64px;              /* 見えない可動域をさらに拡大 */
             background:transparent;
-            margin-top:0;
+            margin-top:-10px;         /* 見た目の位置を大きく変えない */
+            margin-bottom:-10px;
             outline:none;
             cursor:pointer;
             touch-action:pan-y;
@@ -423,23 +424,23 @@ export default function SliderPage() {
 
           .taste-slider::-webkit-slider-thumb{
             -webkit-appearance:none;
-            width:32px;               /* 見た目のつまみも少し拡大 */
-            height:32px;
+            width:22px;               /* 見た目は元の大きさへ */
+            height:22px;
             border-radius:50%;
             background:#262626;
             border:0;
-            box-shadow:0 1px 3px rgba(0,0,0,.3);
-            margin-top:-12px;         /* track中央に合わせる */
+            box-shadow:0 1px 2px rgba(0,0,0,.25);
+            margin-top:-7px;
             cursor:pointer;
           }
 
           .taste-slider::-moz-range-thumb{
-            width:32px;
-            height:32px;
+            width:22px;               /* 見た目は元の大きさへ */
+            height:22px;
             border-radius:50%;
             background:#262626;
             border:0;
-            box-shadow:0 1px 3px rgba(0,0,0,.3);
+            box-shadow:0 1px 2px rgba(0,0,0,.25);
             cursor:pointer;
           }
         `}</style>
