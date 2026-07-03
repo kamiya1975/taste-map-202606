@@ -167,10 +167,10 @@ export default function IntroPage() {
   }, []);
 
   // 店舗選択へ進む
-  function handleGoStore() {
+  const handleGoStore = useCallback(() => {
     setGuest();
     navigate("/store");
-  }
+  }, [navigate]);
 
   const allSlides = slides();
 
@@ -209,7 +209,7 @@ export default function IntroPage() {
     }
 
     handleGoStore();
-  }, [currentIndex, scrollToIndex, allSlides.length]);
+  }, [currentIndex, scrollToIndex, allSlides.length, handleGoStore]);
 
   // 左タップ：最初(= index=0)まで戻る
   const prevSlide = useCallback(() => {
