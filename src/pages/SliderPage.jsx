@@ -424,19 +424,19 @@ export default function SliderPage() {
 
           .taste-slider::-webkit-slider-thumb{
             -webkit-appearance:none;
-            width:28px;               /* 見た目の大きさ */
-            height:28px;
+            width:30px;
+            height:30px;
             border-radius:50%;
             background:#262626;
             border:0;
             box-shadow:0 1px 3px rgba(0,0,0,.28);
-            margin-top:-7px;
+            margin-top:-10px;
             cursor:pointer;
           }
 
           .taste-slider::-moz-range-thumb{
-            width:28px;               /* 見た目の大きさ */
-            height:28px;
+            width:30px;
+            height:30px;
             border-radius:50%;
             background:#262626;
             border:0;
