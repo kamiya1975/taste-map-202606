@@ -151,6 +151,11 @@ function slides() {
         </>
       ),
     },
+    {
+      id: 3,
+      color: PALETTE.bg,
+      content: null,
+    },
   ];
 }
 
@@ -161,6 +166,7 @@ export default function IntroPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
   const scrollerRef = useRef(null);
+  const hasNavigatedRef = useRef(false);
 
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -168,6 +174,9 @@ export default function IntroPage() {
 
   // 店舗選択へ進む
   const handleGoStore = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+
     setGuest();
     navigate("/store");
   }, [navigate]);
@@ -178,7 +187,14 @@ export default function IntroPage() {
   const handleScroll = (e) => {
     const w = window.innerWidth || document.documentElement.clientWidth;
     const index = Math.round(e.target.scrollLeft / Math.max(1, w));
-    setCurrentIndex(Math.min(Math.max(index, 0), allSlides.length - 1));
+    const clamped = Math.min(Math.max(index, 0), allSlides.length - 1);
+
+    if (clamped >= allSlides.length - 1) {
+      handleGoStore();
+      return;
+    }
+
+    setCurrentIndex(clamped);
   };
 
   // スライド移動（プログラム制御）
