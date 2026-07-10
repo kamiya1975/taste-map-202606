@@ -3045,7 +3045,7 @@ function MapPage() {
       >
         <PanelHeader
           title="アプリガイド"
-          icon="app-guide.svg"
+          icon="gear.png"
           onClose={() => setIsMyPageOpen(false)}
         />
         <MyPagePanelContent
