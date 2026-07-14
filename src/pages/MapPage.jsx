@@ -2973,7 +2973,7 @@ function MapPage() {
           style={{
             position: "absolute",
             right: "10px",
-            bottom: "calc(10px + env(safe-area-inset-bottom) + 45px)",
+            bottom: "calc(10px + env(safe-area-inset-bottom))",
             zIndex: UI_Z_TOP,
             padding: "7px 14px",
             borderRadius: 999,
