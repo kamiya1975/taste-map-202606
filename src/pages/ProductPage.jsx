@@ -664,10 +664,34 @@ export default function ProductPage() {
       // sub_store_ids は送らない（未ログイン時は main だけ、ログイン時はトークンで sub を見る）
       const qsStr = mainId ? `?main_store_id=${encodeURIComponent(String(mainId))}` : "";
 
-      // app API 用トークン（存在すれば付ける）2026.01.
+      // app API 用トークン
       let token = "";
-      try { token = localStorage.getItem("app.access_token") || ""; } catch {}
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      let qrContextStoreId = null;
+
+      try {
+        token = localStorage.getItem("app.access_token") || "";
+
+        const rawQr = localStorage.getItem("app.qr_context_store_id");
+        const qrId = Number(rawQr);
+
+        qrContextStoreId =
+          Number.isFinite(qrId) && qrId > 0
+            ? qrId
+           : null;
+      } catch {}
+
+      // QR店舗表示中の商品詳細は、ログインユーザーの
+      // DBメイン店舗・サブ店舗を混ぜず、URLの店舗だけで判定する。
+      // map-products は任意認証APIなので、QR文脈中だけBearerを付けない。
+      const isQrStoreContext =
+        qrContextStoreId != null &&
+        mainId != null &&
+        Number(qrContextStoreId) === Number(mainId);
+
+      const headers =
+        token && !isQrStoreContext
+          ? { Authorization: `Bearer ${token}` }
+          : undefined;
 
       try {
         const res = await fetch(
