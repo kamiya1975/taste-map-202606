@@ -2972,9 +2972,8 @@ function MapPage() {
           onClick={handleReturnToOriginalMap}
           style={{
             position: "absolute",
-            top: "12px",
-            left: "50%",
-            transform: "translateX(-50%)",
+            right: "10px",
+            bottom: "calc(10px + env(safe-area-inset-bottom) + 45px)",
             zIndex: UI_Z_TOP,
             padding: "7px 14px",
             borderRadius: 999,
