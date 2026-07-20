@@ -282,7 +282,7 @@ export default function SliderPage() {
         JSON.stringify({
           coordsUMAP: [umapX, umapY],
           ////2026.07.イベント後修正（スライダー後アクセスログ追加）  以下3行と置き換え
-          version: 4,
+          version: 5,
           source: "standard_slider",
           createdAt: sliderResultCreatedAt,
           referenceLotId: referenceLot.lotId,
@@ -291,6 +291,7 @@ export default function SliderPage() {
             pc2: basePC2,
             pc3: basePC3,
           },
+          sliderValues: rawSliderValues,
           nearestJan: referenceLot.JAN || null,
         })
       );
@@ -311,7 +312,7 @@ export default function SliderPage() {
         JSON.stringify({
           coordsUMAP: [umapX, umapY],
           ////2026.07.イベント後修正（スライダー後アクセスログ追加）  以下3行と置き換え
-          version: 4,
+          version: 5,
           source: "standard_slider",
           createdAt: sliderResultCreatedAt,
           referenceLotId: referenceLot.lotId,
@@ -320,6 +321,7 @@ export default function SliderPage() {
             pc2: pc2Value,
             pc3: pc3Value,
           },
+          sliderValues: rawSliderValues,
           nearestJan: nearest.JAN,
         })
       );
