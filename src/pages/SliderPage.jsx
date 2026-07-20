@@ -257,6 +257,12 @@ export default function SliderPage() {
 
     const sliderResultCreatedAt = new Date().toISOString();
 
+    const rawSliderValues = {
+      slider_1_value: Math.round(Number(body)),
+      slider_2_value: Math.round(Number(sweetness)),
+      slider_3_value: Math.round(Number(acidity)),
+    };
+    
     const { minPC1, maxPC1, minPC2, maxPC2, minPC3, maxPC3 } = pcMinMax;
     const basePC1 = num(referenceLot.pc1);
     const basePC2 = num(referenceLot.pc2);
