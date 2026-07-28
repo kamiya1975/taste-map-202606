@@ -9,6 +9,7 @@ import {
   addWishlist,
   removeWishlist,
 } from "../lib/appWishlist";
+import { getWineIngredientArrow } from "../lib/wineIngredientArrows";
 import {
   getClusterRGBA,
   clusterRGBAtoCSS,
@@ -373,6 +374,49 @@ function formatIngredientValue(value, unit = "g/L") {
 }
 
 /** =========================
+ *  成分値と矢印を表示
+ * ========================= */
+function renderIngredientValue({
+  value,
+  unit = "g/L",
+  wineType,
+  ingredientKey,
+}) {
+  const displayValue = formatIngredientValue(value, unit);
+
+  const arrow = getWineIngredientArrow(
+    wineType,
+    ingredientKey,
+    value
+  );
+
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+      }}
+    >
+      <span>{displayValue}</span>
+
+      {arrow && (
+        <span
+          aria-label={`分布上の位置 ${arrow}`}
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            lineHeight: 1,
+          }}
+        >
+          {arrow}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** =========================
  *  検体年の表示
  * - 4桁の数値だけ「年」を付ける
  * - NVはそのまま表示する
@@ -414,27 +458,52 @@ function ProductInfoSection({ product, jan_code }) {
     ["品種", product.grape_variety || "—"],
     [
       "総糖",
-      formatIngredientValue(product.total_sugar),
+      renderIngredientValue({
+        value: product.total_sugar,
+        wineType: product.wine_type,
+        ingredientKey: "total_sugar",
+      }),
     ],
     [
       "pH",
-      formatIngredientValue(product.ph, ""),
+      renderIngredientValue({
+        value: product.ph,
+        unit: "",
+        wineType: product.wine_type,
+        ingredientKey: "ph",
+      }),
     ],
     [
       "総ポリフェノール",
-      formatIngredientValue(product.total_polyphenol),
+      renderIngredientValue({
+        value: product.total_polyphenol,
+        wineType: product.wine_type,
+        ingredientKey: "total_polyphenol",
+      }),
     ],
     [
       "酒石酸",
-      formatIngredientValue(product.tartaric_acid),
+      renderIngredientValue({
+        value: product.tartaric_acid,
+        wineType: product.wine_type,
+        ingredientKey: "tartaric_acid",
+      }),
     ],
     [
       "リンゴ酸",
-      formatIngredientValue(product.malic_acid),
+      renderIngredientValue({
+        value: product.malic_acid,
+        wineType: product.wine_type,
+        ingredientKey: "malic_acid",
+      }),
     ],
     [
       "乳酸",
-      formatIngredientValue(product.lactic_acid),
+      renderIngredientValue({
+        value: product.lactic_acid,
+        wineType: product.wine_type,
+        ingredientKey: "lactic_acid",
+      }),
     ],
     [
       "検体ヴィンテージ",
