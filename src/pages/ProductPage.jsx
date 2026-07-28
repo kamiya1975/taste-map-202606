@@ -9,7 +9,10 @@ import {
   addWishlist,
   removeWishlist,
 } from "../lib/appWishlist";
-import { getWineIngredientArrow } from "../lib/wineIngredientArrows";
+import {
+  getWineIngredientArrow,
+  getWineIngredientArrowStyle,
+} from "../lib/wineIngredientArrows";
 import {
   getClusterRGBA,
   clusterRGBAtoCSS,
@@ -390,6 +393,8 @@ function renderIngredientValue({
     value
   );
 
+  const arrowStyle = getWineIngredientArrowStyle(arrow);
+
   return (
     <span
       style={{
@@ -403,11 +408,7 @@ function renderIngredientValue({
       {arrow && (
         <span
           aria-label={`分布上の位置 ${arrow}`}
-          style={{
-            fontSize: 18,
-            fontWeight: 700,
-            lineHeight: 1,
-          }}
+          style={arrowStyle}
         >
           {arrow}
         </span>
