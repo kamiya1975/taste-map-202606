@@ -1,6 +1,5 @@
 // src/lib/wineIngredientArrows.js
 // 商品詳細 データ表示のワインタイプ/成分値に応じた 矢印判定
-import { CLUSTER_COLORS_FIXED } from "../ui/constants";
 
 /** =========================
  * 各ワインタイプ・成分の閾値
@@ -121,45 +120,15 @@ const WINE_INGREDIENT_THRESHOLDS = {
 };
 
 /** =========================
- * 矢印ごとに使用するクラスター色
- * ↑：クラスター7（赤系）
- * ↓：クラスター8（紫系）
- * →：クラスター3（緑系）
- * ========================= */
-const WINE_INGREDIENT_ARROW_CLUSTER_IDS = {
-  "↑": 7,
-  "↓": 8,
-  "→": 3,
-};
-
-/** =========================
  * 矢印の共通表示設定
  * 色・大きさ・太さを変更する場合は、
  * このファイル内の値だけを変更する。
  * ========================= */
 const WINE_INGREDIENT_ARROW_STYLE = {
   fontSize: 18,
-  fontWeight: 500,
+  fontWeight: 400,
   lineHeight: 1,
 };
-
-/** =========================
- * クラスター色のRGBA配列をCSS文字列へ変換
- * ========================= */
-function clusterColorToCss(clusterId) {
-  const rgba = CLUSTER_COLORS_FIXED[clusterId];
-
-  if (
-    !Array.isArray(rgba) ||
-    rgba.length < 3
-  ) {
-    return undefined;
-  }
-
-  const [red, green, blue, alpha = 255] = rgba;
-
-  return `rgba(${red}, ${green}, ${blue}, ${alpha / 255})`;
-}
 
 /** =========================
  * tdb_product.wine_type を矢印判定用の4分類へ変換
@@ -268,14 +237,6 @@ export function getWineIngredientArrow(
  * 判定済みの矢印以外が渡された場合は、
  * 共通スタイルだけを返す。
  * ========================= */
-export function getWineIngredientArrowStyle(arrow) {
-  const clusterId =
-    WINE_INGREDIENT_ARROW_CLUSTER_IDS[arrow];
-
-  const color = clusterColorToCss(clusterId);
-
-  return {
-    ...WINE_INGREDIENT_ARROW_STYLE,
-    ...(color ? { color } : {}),
-  };
+export function getWineIngredientArrowStyle() {
+  return WINE_INGREDIENT_ARROW_STYLE;
 }
