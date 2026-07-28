@@ -437,7 +437,7 @@ function ProductInfoSection({ product, jan_code }) {
       formatIngredientValue(product.lactic_acid),
     ],
     [
-      "検体",
+      "検体ヴィンテージ",
       productionYearTaste ? (
         <div>
           <div>{productionYearTaste}</div>
