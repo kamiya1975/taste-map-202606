@@ -400,11 +400,9 @@ function renderIngredientValue({
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
+        gap: 5,
       }}
     >
-      <span>{displayValue}</span>
-
       {arrow && (
         <span
           aria-label={`分布上の位置 ${arrow}`}
@@ -413,6 +411,7 @@ function renderIngredientValue({
           {arrow}
         </span>
       )}
+      <span>{displayValue}</span>
     </span>
   );
 }
