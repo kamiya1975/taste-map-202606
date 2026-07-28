@@ -126,7 +126,7 @@ const WINE_INGREDIENT_THRESHOLDS = {
  * ========================= */
 const WINE_INGREDIENT_ARROW_STYLE = {
   fontSize: 18,
-  fontWeight: 400,
+  fontWeight: 100,
   lineHeight: 1,
 };
 
