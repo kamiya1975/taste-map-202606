@@ -125,7 +125,7 @@ const WINE_INGREDIENT_THRESHOLDS = {
  * このファイル内の値だけを変更する。
  * ========================= */
 const WINE_INGREDIENT_ARROW_STYLE = {
-  fontSize: 18,
+  fontSize: 16,
   fontWeight: 100,
   lineHeight: 1,
 };
