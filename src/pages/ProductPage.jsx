@@ -10,10 +10,6 @@ import {
   removeWishlist,
 } from "../lib/appWishlist";
 import {
-  getWineIngredientArrow,
-  getWineIngredientArrowStyle,
-} from "../lib/wineIngredientArrows";
-import {
   getClusterRGBA,
   clusterRGBAtoCSS,
   toJapaneseWineType,
@@ -350,172 +346,27 @@ function ProductImage({ product, jan_code, maxHeight = 225 }) {
 }
 
 /** =========================
- *  成分値の表示
- * - null / undefined / 空文字は欠損扱い
- * - 0 は有効値として「0.0」と表示
- * - pH以外は g/L を付ける
- * ========================= */
-function formatIngredientValue(value, unit = "g/L") {
-  if (value === null || value === undefined || value === "") {
-    return unit ? `- ${unit}` : "-";
-  }
-
-  const numericValue = Number(value);
-
-  if (!Number.isFinite(numericValue)) {
-    return unit ? `- ${unit}` : "-";
-  }
-
-  const displayValue =
-    numericValue === 0
-      ? "0.0"
-      : String(value);
-
-  return unit
-    ? `${displayValue} ${unit}`
-    : displayValue;
-}
-
-/** =========================
- *  成分値と矢印を表示
- * ========================= */
-function renderIngredientValue({
-  value,
-  unit = "g/L",
-  wineType,
-  ingredientKey,
-}) {
-  const displayValue = formatIngredientValue(value, unit);
-
-  const arrow = getWineIngredientArrow(
-    wineType,
-    ingredientKey,
-    value
-  );
-
-  const arrowStyle = getWineIngredientArrowStyle(arrow);
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-      }}
-    >
-      <span>{displayValue}</span>
-
-      {arrow && (
-        <span
-          aria-label={`分布上の位置 ${arrow}`}
-          style={arrowStyle}
-        >
-          {arrow}
-        </span>
-      )}
-    </span>
-  );
-}
-
-/** =========================
- *  検体年の表示
- * - 4桁の数値だけ「年」を付ける
- * - NVはそのまま表示する
- * ========================= */
-function formatProductionYearTaste(value) {
-  if (value === null || value === undefined || value === "") {
-    return null;
-  }
-
-  const text = String(value).trim();
-
-  return /^\d{4}$/.test(text)
-    ? `${text}年`
-    : text;
-}
-
-/** =========================
  *  商品説明セクション
  * ========================= */
 function ProductInfoSection({ product, jan_code }) {
   if (!product) return null;
 
-  // 表示用JAN
-  // APIが返す product.jan_code を優先し、無ければURLの jan_code を使用
+  // 追加：表示用 JAN（APIが返す product.jan_code を優先、無ければURLの jan_code）
   const janValue = product?.jan_code || jan_code || "—";
 
-  // 検体年
-  const productionYearTaste = formatProductionYearTaste(
-    product.production_year_taste
-  );
-
   const detailRows = [
-    ["JAN", janValue],
     ["タイプ", toJapaneseWineType(product.wine_type)],
     ["生産者名", product.producer_name || "—"],
     ["容量", product.volume_ml ? `${product.volume_ml}ml` : "—"],
     ["国", product.country || "—"],
     ["産地", product.region || "—"],
     ["品種", product.grape_variety || "—"],
+    ["JAN", janValue],
     [
-      "総糖",
-      renderIngredientValue({
-        value: product.total_sugar,
-        wineType: product.wine_type,
-        ingredientKey: "total_sugar",
-      }),
-    ],
-    [
-      "pH",
-      renderIngredientValue({
-        value: product.ph,
-        unit: "",
-        wineType: product.wine_type,
-        ingredientKey: "ph",
-      }),
-    ],
-    [
-      "総ポリフェノール",
-      renderIngredientValue({
-        value: product.total_polyphenol,
-        wineType: product.wine_type,
-        ingredientKey: "total_polyphenol",
-      }),
-    ],
-    [
-      "酒石酸",
-      renderIngredientValue({
-        value: product.tartaric_acid,
-        wineType: product.wine_type,
-        ingredientKey: "tartaric_acid",
-      }),
-    ],
-    [
-      "リンゴ酸",
-      renderIngredientValue({
-        value: product.malic_acid,
-        wineType: product.wine_type,
-        ingredientKey: "malic_acid",
-      }),
-    ],
-    [
-      "乳酸",
-      renderIngredientValue({
-        value: product.lactic_acid,
-        wineType: product.wine_type,
-        ingredientKey: "lactic_acid",
-      }),
-    ],
-    [
-      "検体ヴィンテージ",
-      productionYearTaste ? (
-        <div>
-          <div>{productionYearTaste}</div>
-          <div>酒類総合情報センター調べ</div>
-        </div>
-      ) : (
-        "—"
-      ),
+      "検体",
+      product.production_year_taste
+        ? `${product.production_year_taste}：酒類総合情報センター調べ`
+        : "—",
     ],
   ];
 
@@ -593,7 +444,7 @@ function ProductInfoSection({ product, jan_code }) {
               key={label}
               style={{ display: "flex", marginTop: 2 }}
             >
-              <div style={{ width: 136, flexShrink: 0 }}>{label}</div>
+              <div style={{ width: 96, flexShrink: 0 }}>{label}</div>
               <div style={{ flex: 1 }}>{value}</div>
             </div>
           ))}
