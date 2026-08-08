@@ -363,7 +363,7 @@ function ProductInfoSection({ product, jan_code }) {
     ["品種", product.grape_variety || "—"],
     ["JAN", janValue],
     [
-      "検体",
+      "検体生産年",
       product.production_year_taste
         ? `${product.production_year_taste}：酒類総合情報センター調べ`
         : "—",
